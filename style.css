@@ -688,6 +688,21 @@ html, body {
 #brief-cta strong { color: #ffd9a0; font-size: 14px; }
 #brief-cta:active { background: rgba(242, 162, 74, 0.3); }
 
+/* ------------------------------------------------------ reduced motion */
+
+@media (prefers-reduced-motion: reduce) {
+  .peg { transition: none; }
+  #hand .card.deal-in,
+  .show-item,
+  #showTotal { animation: none; }
+  #callout { animation-name: callout-reduced; }
+}
+
+@keyframes callout-reduced {
+  0%, 90% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
 /* ---------------------------------------------------------------- desktop */
 
 @media (min-width: 700px) {

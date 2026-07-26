@@ -48,7 +48,8 @@ function playerNameS(p) { // possessive-friendly subject ("Your" / "Champ's")
 
 function humanTurn() {
   return G && getStatus(G.state).status === 'active' &&
-    !(G.mode === 'bot' && G.state.turn === BOT);
+    !(G.mode === 'bot' && G.state.turn === BOT) &&
+    !(G.mode === 'pass' && passSeat !== G.state.turn);
 }
 
 function show(name) {
@@ -560,7 +561,7 @@ function scheduleNext(lastMove) {
     return;
   }
   // pass & play: interstitial before revealing a different player's cards
-  if (['discard', 'play'].includes(s.phase) && passSeat !== s.turn) {
+  if (['discard', 'cut', 'play'].includes(s.phase) && passSeat !== s.turn) {
     showHandoff(s.turn);
   }
 }
@@ -708,7 +709,7 @@ $('resumeBtn').addEventListener('click', () => {
   passSeat = null;
   busy = false;
   if (!BOARD.holes) buildBoard();
-  if (G.mode === 'pass' && ['discard', 'play'].includes(G.state.phase)) {
+  if (G.mode === 'pass' && ['discard', 'cut', 'play'].includes(G.state.phase)) {
     showHandoff(G.state.turn);
   } else {
     show('game');

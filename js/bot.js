@@ -1,6 +1,6 @@
 /* Champ the bot — picks a move using ONLY the engine's public API.
  * No rule logic lives here: the bot chooses among legalMoves(state) and
- * uses the engine/scoring modules to evaluate them.
+ * uses the engine's exported scoring helpers to evaluate them.
  *
  * Discarding: tries all 15 ways to toss 2 of 6, keeps the pair that
  * maximizes the kept hand's average show score over every unseen starter,
@@ -12,8 +12,9 @@
  * fifteened), don't lead a 5, avoid leaving the count at 5 or 21.
  */
 
-import { legalMoves, scorePegging, valueOf, rankOf } from './engine.js';
-import { scoreHand, runIndex } from './scoring.js';
+import {
+  legalMoves, scorePegging, scoreHand, valueOf, rankOf, runIndex,
+} from './engine.js';
 
 export function chooseMove(state) {
   const moves = legalMoves(state);
