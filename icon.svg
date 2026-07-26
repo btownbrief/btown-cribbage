@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <rect width="100" height="100" rx="22" fill="#123524"/>
+  <!-- green mountains -->
+  <path d="M0 74 L24 40 L42 60 L60 32 L84 64 L100 50 L100 100 L0 100 Z" fill="#1b4a31"/>
+  <!-- the trail switchbacking up, with peg holes -->
+  <path d="M14 90 H78 C88 90 88 74 78 74 H22 C12 74 12 58 22 58 H62" fill="none" stroke="#c9a36c" stroke-width="9" stroke-linecap="round"/>
+  <circle cx="30" cy="90" r="1.7" fill="#5a4222"/>
+  <circle cx="46" cy="90" r="1.7" fill="#5a4222"/>
+  <circle cx="62" cy="90" r="1.7" fill="#5a4222"/>
+  <circle cx="66" cy="74" r="1.7" fill="#5a4222"/>
+  <circle cx="50" cy="74" r="1.7" fill="#5a4222"/>
+  <circle cx="34" cy="74" r="1.7" fill="#5a4222"/>
+  <circle cx="40" cy="58" r="1.7" fill="#5a4222"/>
+  <!-- the two pegs racing -->
+  <circle cx="54" cy="58" r="4.6" fill="#b5542a" stroke="#f6efdc" stroke-width="1.6"/>
+  <circle cx="26" cy="74" r="4.6" fill="#2e8149" stroke="#f6efdc" stroke-width="1.6"/>
+  <!-- the 5 card -->
+  <g transform="rotate(-8 76 32)">
+    <rect x="62" y="10" width="28" height="40" rx="5" fill="#f6efdc" stroke="#123524" stroke-width="2.5"/>
+    <text x="76" y="39" font-family="-apple-system, Helvetica, Arial, sans-serif" font-size="22" font-weight="900" fill="#c0392b" text-anchor="middle">5</text>
+    <text x="68" y="20" font-family="-apple-system, Helvetica, Arial, sans-serif" font-size="8" font-weight="900" fill="#c0392b" text-anchor="middle">♥</text>
+  </g>
+  <!-- summit flag -->
+  <path d="M20 40 L20 26 L30 30 L20 34" fill="#f2a24a" stroke="#f2a24a" stroke-width="1.6" stroke-linejoin="round"/>
+</svg>

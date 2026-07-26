@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#123524">
+<title>BTOWN CRIBBAGE — Peg Up the Long Trail</title>
+<meta name="description" content="Two-player cribbage on a Long Trail pegging board — count every fifteen, pair, and run against Champ, or pass the phone. A Btown Games production from the BTown Brief.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="BTOWN CRIBBAGE — Peg Up the Long Trail">
+<meta property="og:description" content="Fifteen two, fifteen four — race your pegs up the Green Mountains to 121. The app counts everything, so you learn as you play.">
+<meta property="og:url" content="https://play.btownbrief.com/btown-cribbage/">
+<meta property="og:image" content="https://play.btownbrief.com/btown-cribbage/icon-180.png">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- Title screen -->
+  <div id="menu" class="screen">
+    <div class="menu-inner">
+      <div id="logo" aria-label="Btown Cribbage">
+        <span class="l-btown">BTOWN</span>
+        <span class="l-cribbage"><i>C</i><i>R</i><i>I</i><i>B</i><i>B</i><i>A</i><i>G</i><i>E</i></span>
+        <span class="l-sub">⛰️ peg up the Long Trail ⛰️</span>
+      </div>
+      <div id="tagline">Fifteen two, fifteen four — the app counts<br>every point, so you learn as you play.</div>
+
+      <button id="resumeBtn" class="big-btn hidden">↩&nbsp; BACK TO THE TRAIL</button>
+      <button id="botBtn" class="big-btn">🐉&nbsp; PEG UP vs CHAMP</button>
+      <button id="passBtn" class="mode-btn">📱&nbsp; PASS &amp; PLAY</button>
+
+      <div id="howto">
+        <div class="howto-line"><span class="key">TOSS 2</span> to the crib, cut for the starter</div>
+        <div class="howto-line"><span class="key">PLAY TO 31</span> — 15s, pairs &amp; runs peg points</div>
+        <div class="howto-line"><span class="key">FIRST TO 121</span> summits. Every count is announced</div>
+      </div>
+    </div>
+    <footer id="credit">
+      A Btown Games production · <a href="https://www.btownbrief.com" target="_blank" rel="noopener">Read the BTown Brief →</a>
+    </footer>
+  </div>
+
+  <!-- Pass-the-phone interstitial -->
+  <div id="handoff" class="screen hidden">
+    <div class="menu-inner">
+      <div class="handoff-card">
+        <div class="handoff-emoji">🤝</div>
+        <div id="handoffTitle">Pass the phone to Player 2</div>
+        <div class="handoff-sub">No peeking — it's a small town, word gets around.</div>
+        <button id="handoffBtn" class="big-btn">👀&nbsp; SHOW MY HAND</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Game table -->
+  <div id="game" class="hidden">
+    <div id="topbar">
+      <button id="homeBtn" aria-label="Back to menu">🏠</button>
+      <div id="players"></div>
+    </div>
+
+    <!-- The Long Trail pegging board -->
+    <div id="board"></div>
+
+    <div id="table">
+      <div id="tableRow">
+        <div id="deckArea">
+          <div id="deckPile" role="button" aria-label="The deck">
+            <div class="cardback"><span>⛰️</span></div>
+            <div class="cardback under u1"></div>
+            <div class="cardback under u2"></div>
+          </div>
+          <div id="starterSlot"></div>
+        </div>
+        <div id="playArea">
+          <div id="countBadge" class="hidden">COUNT <b id="countNum">0</b></div>
+          <div id="pile"></div>
+        </div>
+      </div>
+      <div id="msg"></div>
+      <div id="actionRow">
+        <button id="goBtn" class="chip-btn hidden">🤷&nbsp; GO — CAN'T PLAY</button>
+        <button id="cribBtn" class="big-btn small hidden">SEND TO THE CRIB</button>
+        <button id="countBtn" class="big-btn small hidden">🔢&nbsp; COUNT IT UP</button>
+        <button id="dealBtn" class="big-btn small hidden">🃏&nbsp; NEXT HAND</button>
+      </div>
+    </div>
+
+    <div id="handArea">
+      <div id="handLabel"></div>
+      <div id="hand"></div>
+    </div>
+
+    <!-- animated scoring callout -->
+    <div id="callout" class="hidden"></div>
+
+    <!-- the show: itemized count panel -->
+    <div id="showPanel" class="overlay hidden">
+      <div class="show-card">
+        <div id="showTitle"></div>
+        <div id="showCards"></div>
+        <div id="showItems"></div>
+        <div id="showTotal"></div>
+        <button id="showNextBtn" class="big-btn small">CARRY ON&nbsp;→</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Game over -->
+  <div id="gameover" class="screen hidden">
+    <div class="menu-inner">
+      <div id="go-card">
+        <div id="go-title"></div>
+        <div id="go-line"></div>
+        <div id="go-score"></div>
+        <div id="go-btns">
+          <button id="againBtn" class="big-btn">↻&nbsp; REMATCH</button>
+          <button id="menuBtn" class="chip-btn">🏠&nbsp; MENU</button>
+        </div>
+        <a id="brief-cta" href="https://www.btownbrief.com" target="_blank" rel="noopener">
+          🗞️ Champ counts his cards AND his headlines.<br><strong>Read the BTown Brief →</strong>
+        </a>
+      </div>
+    </div>
+    <footer id="credit-go">
+      A Btown Games production · <a href="https://www.btownbrief.com" target="_blank" rel="noopener">Read the BTown Brief →</a>
+    </footer>
+  </div>
+
+</div>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
