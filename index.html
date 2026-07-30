@@ -40,6 +40,21 @@
       <button id="botBtn" class="big-btn">🐉&nbsp; PEG UP vs CHAMP</button>
       <button id="passBtn" class="mode-btn">📱&nbsp; PASS &amp; PLAY</button>
 
+      <div id="onlineModes">
+        <div class="online-label">or deal a friend in — any two phones</div>
+        <div id="onlineRow">
+          <button class="mode-btn online-btn" id="hostBtn">
+            <span class="online-name">⛰️ START A TABLE</span>
+            <span class="online-blurb">get a code for your friend</span>
+          </button>
+          <button class="mode-btn online-btn" id="joinBtn">
+            <span class="online-name">🔑 JOIN A TABLE</span>
+            <span class="online-blurb">enter their four-letter code</span>
+          </button>
+        </div>
+        <button id="rejoinBtn" class="chip-btn hidden"></button>
+      </div>
+
       <div id="howto">
         <div class="howto-line"><span class="key">TOSS 2</span> to the crib, cut for the starter</div>
         <div class="howto-line"><span class="key">PLAY TO 31</span> — 15s, pairs &amp; runs peg points</div>
@@ -49,6 +64,34 @@
     <footer id="credit">
       A Btown Games production · <a href="https://play.btownbrief.com/">More games →</a> · <a href="https://www.btownbrief.com" target="_blank" rel="noopener">Read the BTown Brief →</a>
     </footer>
+  </div>
+
+  <!-- Online setup: name (+ code when joining) -->
+  <div id="onlinePanel" class="overlay hidden">
+    <div class="op-card">
+      <div id="opTitle" class="op-title">START A TABLE</div>
+      <label class="op-label" for="opName">YOUR NAME</label>
+      <input id="opName" maxlength="24" autocomplete="nickname" placeholder="Pegger">
+      <div id="opCodeWrap" class="hidden">
+        <label class="op-label" for="opCode">TRAIL CODE</label>
+        <input id="opCode" maxlength="4" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="ABCD">
+      </div>
+      <div id="opError" class="op-error hidden"></div>
+      <div class="op-btns">
+        <button id="opCancel" class="chip-btn">BACK</button>
+        <button id="opGo" class="big-btn">GET A CODE</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lobby: show the table code while we wait for the friend -->
+  <div id="lobby" class="overlay hidden">
+    <div class="op-card">
+      <div class="op-title">READ THIS CODE TO YOUR FRIEND</div>
+      <div id="lobbyCode"></div>
+      <div id="lobbyHint">they open this game, tap <b>JOIN A TABLE</b>, and type it in</div>
+      <div class="op-btns"><button id="lobbyCancel" class="chip-btn">PACK UP THE CARDS</button></div>
+    </div>
   </div>
 
   <!-- Pass-the-phone interstitial -->

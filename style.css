@@ -180,6 +180,126 @@ html, body {
 #credit a, #credit-go a { color: var(--sun); font-weight: 700; text-decoration: none; }
 #credit a:active, #credit-go a:active { text-decoration: underline; }
 
+/* ------------------------------------------------------------ online play */
+
+#onlineModes {
+  width: 100%;
+  max-width: 390px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+}
+.online-label {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--cream-dim);
+  text-shadow: 0 1px 3px rgba(18, 53, 36, 0.8);
+}
+#onlineRow {
+  display: flex;
+  gap: 9px;
+  width: 100%;
+}
+.online-btn {
+  flex: 1;
+  min-width: 0;
+  padding: 9px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+.online-name {
+  font-size: clamp(11px, 3.2vw, 14px);
+  font-weight: 900;
+  white-space: nowrap;
+}
+.online-blurb {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0;
+  color: var(--cream-dim);
+}
+#rejoinBtn { margin-top: 2px; padding: 8px 13px; }
+
+.op-card {
+  width: min(92vw, 350px);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 22px 18px;
+  background: linear-gradient(180deg, rgba(27, 74, 49, 0.99), rgba(18, 53, 36, 0.99));
+  border: 3px solid var(--pine);
+  border-radius: 20px;
+  box-shadow: 0 16px 42px rgba(0, 0, 0, 0.5);
+  color: var(--cream);
+  text-align: center;
+}
+.op-title {
+  font-size: 17px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+.op-label {
+  margin-bottom: -6px;
+  color: var(--cream-dim);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-align: left;
+}
+.op-card input {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid rgba(246, 239, 220, 0.3);
+  border-radius: 12px;
+  outline: none;
+  background: rgba(10, 30, 19, 0.7);
+  color: var(--cream);
+  font: inherit;
+  font-size: 18px;
+  font-weight: 700;
+  text-align: center;
+  -webkit-user-select: text;
+  user-select: text;
+}
+.op-card input:focus { border-color: var(--sun); }
+#opCode {
+  font-size: 24px;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+}
+.op-error {
+  color: #ffb09c;
+  font-size: 13px;
+  font-weight: 700;
+}
+.op-btns {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 4px;
+}
+.op-btns .big-btn { padding: 11px 20px; font-size: 16px; }
+#lobbyCode {
+  padding: 6px 0;
+  color: var(--sun);
+  font-size: 44px;
+  font-weight: 900;
+  letter-spacing: 0.35em;
+  text-indent: 0.35em;
+  text-shadow: 0 3px 0 var(--pine);
+  animation: lobbyPulse 1.6s ease-in-out infinite;
+}
+@keyframes lobbyPulse {
+  50% { opacity: 0.75; }
+}
+#lobbyHint { color: var(--cream-dim); font-size: 13px; line-height: 1.4; }
+
 /* ---------------------------------------------------------------- handoff */
 
 .handoff-card {

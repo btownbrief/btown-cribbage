@@ -29,6 +29,25 @@ object between phones. Rule logic in `main.js` or `bot.js` silently
 breaks that plan. `js/bot.js` may only call the engine's public API;
 `js/main.js` is UI only.
 
+## Online play (the rooms layer)
+
+`js/rooms.js` is the fleet's vendored online-multiplayer client — the
+canonical copy lives in `four-in-a-rowboat`; this repo copies it verbatim.
+It talks to the shared Supabase rooms backend
+(`btownbrief.github.io/supabase/rooms-2026-07-30.sql`): a room is a
+4-letter code + the entire engine state as opaque JSON + a version number.
+After your move you push the new state with the version you last saw;
+everyone else polls. All rules stay in `engine.js` — `rooms.js` knows
+nothing about cribbage. Host sits in seat 0 and is mapped to whichever
+engine player acts first in the fresh seeded state; the joiner is seat 1.
+If the backend SQL isn't installed yet, clients get a clean `not_ready`
+error and the UI says online play isn't switched on.
+
+`scripts/rooms-shim.mjs` is the verbatim fleet stand-in for the backend
+(also canonical in `four-in-a-rowboat`) so everything is testable offline:
+`scripts/test-rooms.mjs` drives the real client + engine through a full
+online game against it.
+
 ## Scoring accuracy IS the product
 
 Cribbage players notice a single miscounted point, and muggins is
@@ -41,10 +60,10 @@ paper before deciding which one is wrong.
 
 ## Before you finish
 
-Run `node scripts/test-scoring.mjs` **and** `node scripts/test-engine.mjs`
-— plain Node, no framework, both must pass. If you touched the engine or
-scoring, add assertions for the new behavior. If you touched the UI, load
-the game at a phone-sized viewport and play at least one full hand (deal →
-discard → cut → pegging → show → next deal), vs Champ AND pass-and-play,
-or clearly say you couldn't and what you inspected instead. Say what you
-verified.
+Run `node scripts/test-scoring.mjs`, `node scripts/test-engine.mjs`, and
+`node scripts/test-rooms.mjs` — plain Node, no framework, all must pass.
+If you touched the engine or scoring, add assertions for the new behavior.
+If you touched the UI, load the game at a phone-sized viewport and play at
+least one full hand (deal → discard → cut → pegging → show → next deal),
+vs Champ AND pass-and-play, or clearly say you couldn't and what you
+inspected instead. Say what you verified.
