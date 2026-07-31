@@ -111,6 +111,7 @@
     <div id="topbar">
       <button id="homeBtn" aria-label="Back to menu">🏠</button>
       <div id="players"></div>
+      <button id="mute" aria-label="Mute sound" aria-pressed="false">🔊</button>
     </div>
 
     <!-- The Long Trail pegging board -->
@@ -146,7 +147,7 @@
     </div>
 
     <!-- animated scoring callout -->
-    <div id="callout" class="hidden"></div>
+    <div id="callout" class="hidden" role="status" aria-live="polite" aria-atomic="true"></div>
 
     <!-- the show: itemized count panel -->
     <div id="showPanel" class="overlay hidden">
@@ -162,6 +163,7 @@
 
   <!-- Game over -->
   <div id="gameover" class="screen hidden">
+    <div id="leaves" aria-hidden="true"></div>
     <div class="menu-inner">
       <div id="go-card">
         <div id="go-title"></div>

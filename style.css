@@ -354,6 +354,22 @@ html, body {
   cursor: pointer;
   touch-action: manipulation;
 }
+#mute {
+  flex: none;
+  font-size: 17px;
+  width: 40px; height: 40px;
+  border-radius: 12px;
+  border: 2px solid rgba(246, 239, 220, 0.25);
+  background: rgba(18, 53, 36, 0.55);
+  color: var(--cream);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+#homeBtn:focus-visible,
+#mute:focus-visible {
+  outline: 3px solid var(--sun);
+  outline-offset: 2px;
+}
 
 #players {
   flex: 1;
@@ -417,10 +433,46 @@ html, body {
 #board svg { display: block; width: 100%; height: auto; }
 
 .peg { transition: transform 0.7s cubic-bezier(0.5, 1.4, 0.4, 1); }
+#board.instant-pegs .peg { transition: none; }
 .peg circle { stroke: rgba(18, 53, 36, 0.75); stroke-width: 1.1; }
 .peg.p0 circle { fill: var(--maple); }
 .peg.p1 circle { fill: var(--champ); }
 .peg.back circle { opacity: 0.55; r: 3.1; }
+
+#board.summit-result {
+  box-shadow:
+    0 0 0 3px rgba(242, 162, 74, 0.8),
+    0 0 34px rgba(242, 162, 74, 0.75),
+    inset 0 0 34px rgba(255, 194, 78, 0.35);
+}
+#board.summit-celebrate {
+  animation: summit-board 1.1s ease-in-out 2;
+}
+#board.summit-result::after {
+  content: "121 • SUMMIT!";
+  position: absolute;
+  top: 7px;
+  right: 9px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: var(--pine);
+  color: var(--sun);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+#board.skunk-win::after { content: "🦨 SKUNK • 121!"; }
+#board.summit-celebrate.winner-p0 .peg.p0.front,
+#board.summit-celebrate.winner-p1 .peg.p1.front {
+  animation: summit-peg 0.62s ease-in-out 3;
+}
+@keyframes summit-board {
+  50% { filter: saturate(1.18) brightness(1.08); }
+}
+@keyframes summit-peg {
+  50% { filter: drop-shadow(0 0 6px #fff3b5); }
+}
 
 /* ---------------------------------------------------------- mid-table */
 
@@ -663,6 +715,24 @@ html, body {
   text-shadow: 0 3px 0 var(--pine), 0 6px 20px rgba(0, 0, 0, 0.5);
   transform: rotate(-2deg);
 }
+#callout.tier-quiet .co-label {
+  font-size: clamp(18px, 3.2vh, 25px);
+  color: var(--cream-dim);
+  transform: none;
+}
+#callout.tier-big .co-label {
+  font-size: clamp(27px, 5.2vh, 40px);
+  color: #ffd28c;
+  text-shadow: 0 3px 0 var(--maple-deep), 0 7px 24px rgba(0, 0, 0, 0.55);
+}
+#callout.tier-summit .co-label {
+  font-size: clamp(32px, 6.2vh, 48px);
+  color: #fff0a8;
+  text-shadow:
+    0 3px 0 var(--maple-deep),
+    0 0 18px rgba(242, 162, 74, 0.8),
+    0 9px 28px rgba(0, 0, 0, 0.58);
+}
 #callout .co-pts {
   display: block;
   margin-top: 4px;
@@ -678,6 +748,37 @@ html, body {
   28% { transform: scale(1); }
   80% { opacity: 1; }
   100% { opacity: 0; transform: scale(1); }
+}
+
+.score-flight {
+  position: absolute;
+  z-index: 44;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 38px;
+  height: 30px;
+  padding: 0 8px;
+  border: 2px solid var(--cream);
+  border-radius: 999px;
+  background: var(--maple);
+  color: white;
+  font-size: 15px;
+  font-weight: 900;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.38);
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  animation: score-flight 0.78s cubic-bezier(0.3, 0.7, 0.35, 1) forwards;
+}
+.score-flight.p1 { background: var(--champ); }
+@keyframes score-flight {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.75); }
+  14% { opacity: 1; transform: translate(-50%, -50%) scale(1.08); }
+  78% { opacity: 1; }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--fly-x)), calc(-50% + var(--fly-y))) scale(0.62);
+  }
 }
 
 /* ------------------------------------------------------------ the show */
@@ -716,6 +817,13 @@ html, body {
 #showCards { display: flex; gap: 5px; }
 #showCards .card { width: calc(var(--card-w) * 0.72); cursor: default; box-shadow: 0 2px 6px rgba(0,0,0,0.25); }
 #showCards .card.starter-card { outline: 3px solid var(--sun); outline-offset: -1px; }
+#showCards .card.combo-card {
+  z-index: 2;
+  border-color: var(--maple);
+  box-shadow: 0 0 0 3px var(--sun), 0 7px 16px rgba(18, 53, 36, 0.35);
+  transform: translateY(-7px);
+}
+#showCards .card.combo-dim { opacity: 0.38; filter: saturate(0.45); }
 #showItems {
   width: 100%;
   overflow-y: auto;
@@ -755,7 +863,13 @@ html, body {
 
 /* ---------------------------------------------------------------- game over */
 
-#gameover { background: rgba(10, 24, 15, 0.55); }
+#gameover {
+  background: linear-gradient(180deg, rgba(10, 24, 15, 0.12) 0 27%, rgba(10, 24, 15, 0.82) 47%);
+}
+#gameover .menu-inner {
+  justify-content: flex-end;
+  padding-top: min(25vh, 190px);
+}
 #go-card {
   width: min(92vw, 400px);
   background: linear-gradient(180deg, rgba(27, 74, 49, 0.97), rgba(18, 53, 36, 0.97));
@@ -808,11 +922,49 @@ html, body {
 #brief-cta strong { color: #ffd9a0; font-size: 14px; }
 #brief-cta:active { background: rgba(242, 162, 74, 0.3); }
 
+#leaves {
+  position: absolute;
+  inset: 0;
+  z-index: 22;
+  overflow: hidden;
+  pointer-events: none;
+}
+.leaf {
+  position: absolute;
+  top: -22px;
+  width: 13px;
+  height: 17px;
+  border-radius: 80% 15% 75% 20%;
+  background: var(--maple);
+  box-shadow: inset -2px -2px 0 rgba(80, 35, 18, 0.22);
+  animation: leaf-fall 1.8s ease-in forwards;
+}
+.leaf.gold { background: var(--sun); }
+.leaf.green { background: #68a15e; }
+@keyframes leaf-fall {
+  0% { opacity: 0; transform: translate3d(0, -12px, 0) rotate(0); }
+  12% { opacity: 0.92; }
+  100% { opacity: 0; transform: translate3d(var(--drift), 105vh, 0) rotate(540deg); }
+}
+
 /* ------------------------------------------------------ reduced motion */
 
 @media (prefers-reduced-motion: reduce) {
   .peg { transition: none; }
+  .l-cribbage i,
+  #deckPile.cuttable .cardback:first-child,
+  #board.summit-celebrate,
+  #board.winner-p0 .peg.p0.front,
+  #board.winner-p1 .peg.p1.front,
+  .leaf,
+  .score-flight,
+  #pile .card:last-child.slap,
+  #starterSlot .card.flip-in,
+  #hand .card.nope {
+    animation: none;
+  }
   #hand .card.deal-in,
+  #showCards .card,
   .show-item,
   #showTotal { animation: none; }
   #callout { animation-name: callout-reduced; }
