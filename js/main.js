@@ -11,6 +11,7 @@ import {
 } from './engine.js';
 import { chooseMove } from './bot.js';
 import { OnlineMatch, savedSession, clearSession, getName } from './rooms.js';
+import { sound } from './audio.js';
 
 const SAVE_KEY = 'btown-cribbage-save-v1';
 const GAME = 'btown-cribbage';
@@ -44,6 +45,11 @@ let online = null;        // { match, myPlayer, hostPlayer } in a two-phone room
 let panelIntent = 'host';
 let pollErrors = 0;
 let leaveTimer = null;
+let showHighlightTimer = null;
+let pendingDealSound = false;
+let outcomeShown = false;
+
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
 /* ---------------------------------------------------------------- helpers */
 
@@ -281,6 +287,25 @@ function updatePegs() {
   }
 }
 
+function resetEffects() {
+  clearTimeout(showHighlightTimer);
+  showHighlightTimer = null;
+  document.querySelectorAll('.score-flight, #leaves .leaf').forEach((el) => el.remove());
+  $('board').classList.remove('summit-result', 'summit-celebrate', 'winner-p0', 'winner-p1', 'skunk-win');
+}
+
+$('mute').addEventListener('click', () => {
+  const isMuted = sound.toggleMuted();
+  $('mute').textContent = isMuted ? '🔇' : '🔊';
+  $('mute').setAttribute('aria-pressed', String(isMuted));
+  $('mute').setAttribute('aria-label', isMuted ? 'Unmute sound' : 'Mute sound');
+});
+$('mute').textContent = sound.muted ? '🔇' : '🔊';
+$('mute').setAttribute('aria-pressed', String(sound.muted));
+$('mute').setAttribute('aria-label', sound.muted ? 'Unmute sound' : 'Mute sound');
+document.addEventListener('pointerdown', sound.unlock, { once: true, capture: true });
+document.addEventListener('keydown', sound.unlock, { once: true, capture: true });
+
 /* ---------------------------------------------------------------- cards */
 
 function cardEl(card) {
@@ -337,7 +362,12 @@ function render(fx = {}) {
     chips.appendChild(chip);
   }
 
+  if (fx.instantPegs) $('board').classList.add('instant-pegs');
   updatePegs();
+  if (fx.instantPegs) {
+    void $('board').offsetWidth;
+    $('board').classList.remove('instant-pegs');
+  }
 
   // deck + starter
   const cuttable = s.phase === 'cut' && myTurn;
@@ -519,7 +549,19 @@ const CALLOUT_TEXT = {
 };
 
 function processEvents(events, done) {
-  eventQueue = events.filter((e) => e.kind !== 'win');
+  const presentable = events.filter((e) => e.kind !== 'win');
+  if (presentable.length > 1 && presentable.every((e) => e.kind !== 'show')) {
+    const points = presentable.reduce((sum, e) => sum + (e.points || 0), 0);
+    eventQueue = [{
+      kind: 'turn',
+      player: presentable[0].player,
+      points,
+      label: 'this turn',
+      parts: presentable,
+    }];
+  } else {
+    eventQueue = presentable;
+  }
   afterQueue = done;
   busy = true;
   nextEvent();
@@ -539,13 +581,19 @@ function nextEvent() {
 
   const text = CALLOUT_TEXT[e.kind] ? CALLOUT_TEXT[e.kind](e) : e.label.toUpperCase();
   const co = $('callout');
-  co.className = e.player === 1 ? 'for-p1' : '';
+  const tier = e.points >= 9 ? 'tier-summit' : e.points >= 5 ? 'tier-big' : e.points <= 1 ? 'tier-quiet' : 'tier-standard';
+  co.className = `${e.player === 1 ? 'for-p1 ' : ''}${tier}`;
   co.innerHTML = '';
   const label = document.createElement('span');
   label.className = 'co-label';
-  label.textContent = text;
+  label.textContent = e.kind === 'turn' ? `+${e.points} THIS TURN` : text;
   co.appendChild(label);
-  if (e.points) {
+  if (e.kind === 'turn') {
+    const points = document.createElement('span');
+    points.className = 'co-pts';
+    points.textContent = `${e.parts.map((part) => CALLOUT_TEXT[part.kind]?.(part) || part.label).join(' + ')} • ${playerName(e.player)}`;
+    co.appendChild(points);
+  } else if (e.points) {
     const points = document.createElement('span');
     points.className = 'co-pts';
     points.textContent = `+${e.points} for ${playerName(e.player)}`;
@@ -553,13 +601,40 @@ function nextEvent() {
   }
   co.classList.remove('hidden');
   co.style.animation = 'none'; void co.offsetWidth; co.style.animation = '';
+  sound.callout(e.kind, e.points);
+  flyScore(e.points, e.player, co);
   clearTimeout(calloutTimer);
   calloutTimer = setTimeout(nextEvent, 1050);
+}
+
+function flyScore(points, player, source) {
+  if (!points || reducedMotion.matches || !BOARD.pegs) return;
+  const from = source.getBoundingClientRect();
+  const game = $('game').getBoundingClientRect();
+  const svg = $('board').querySelector('svg');
+  const hole = BOARD.holes[player][Math.min(G.state.scores[player], WIN_SCORE)];
+  const point = svg.createSVGPoint();
+  point.x = hole.x;
+  point.y = hole.y;
+  const target = point.matrixTransform(svg.getScreenCTM());
+  const fromX = from.left + from.width / 2;
+  const fromY = from.top + from.height / 2;
+  const chip = document.createElement('span');
+  chip.className = `score-flight p${player}`;
+  chip.textContent = `+${points}`;
+  chip.setAttribute('aria-hidden', 'true');
+  chip.style.left = `${fromX - game.left}px`;
+  chip.style.top = `${fromY - game.top}px`;
+  chip.style.setProperty('--fly-x', `${target.x - fromX}px`);
+  chip.style.setProperty('--fly-y', `${target.y - fromY}px`);
+  chip.addEventListener('animationend', () => chip.remove(), { once: true });
+  $('game').appendChild(chip);
 }
 
 /* --------------------------------------------------------- the show panel */
 
 function openShowPanel(e) {
+  sound.callout('show', e.points);
   $('showTitle').textContent =
     `${playerNameS(e.player)} ${e.role === 'crib' ? 'crib' : 'hand'} — ${e.points} point${e.points === 1 ? '' : 's'}`;
 
@@ -601,14 +676,37 @@ function openShowPanel(e) {
       `<span>${item.label}</span>` +
       `<span class="si-cards">${item.cards.map(cardText).join(' ')}</span>` +
       `<span class="si-pts">+${item.points}</span>`;
+    div.addEventListener('animationstart', () => highlightShowCards(item.cards));
+    div.addEventListener('pointerenter', () => highlightShowCards(item.cards));
     list.appendChild(div);
   });
+  if (reducedMotion.matches && e.breakdown.items[0]) {
+    highlightShowCards(e.breakdown.items[0].cards, true);
+  }
   $('showTotal').innerHTML = `TOTAL — <b>${e.points}</b>`;
   $('showTotal').style.animationDelay = (e.breakdown.items.length * 90 + 120) + 'ms';
   $('showPanel').classList.remove('hidden');
 }
 
+function highlightShowCards(cards, keep = false) {
+  clearTimeout(showHighlightTimer);
+  const wanted = new Set(cards);
+  $('showCards').querySelectorAll('.card').forEach((card) => {
+    card.classList.toggle('combo-card', wanted.has(card.dataset.card));
+    card.classList.toggle('combo-dim', !wanted.has(card.dataset.card));
+  });
+  if (!keep) {
+    showHighlightTimer = setTimeout(() => {
+      $('showCards').querySelectorAll('.card').forEach((card) => {
+        card.classList.remove('combo-card', 'combo-dim');
+      });
+    }, 520);
+  }
+}
+
 $('showNextBtn').addEventListener('click', () => {
+  clearTimeout(showHighlightTimer);
+  showHighlightTimer = null;
   $('showPanel').classList.add('hidden');
   nextEvent();
 });
@@ -626,6 +724,11 @@ function doMove(move) {
   if (move.type === 'cut') fx.flipStarter = true;
   if (move.type === 'deal') fx.dealAll = true;
   if (move.type === 'discard') selected = [];
+  if (move.type === 'play') sound.slap();
+  if (move.type === 'deal') {
+    if (G.mode === 'pass') pendingDealSound = true;
+    else sound.deal();
+  }
   render(fx);
 
   processEvents(G.state.lastEvents, () => {
@@ -722,6 +825,10 @@ function startGame(mode) {
   selected = [];
   passSeat = null;
   busy = false;
+  pendingDealSound = mode === 'pass';
+  outcomeShown = false;
+  sound.stop();
+  resetEffects();
   G = { mode, state: createInitialState({ seed: newSeed() }) };
   save();
   if (!BOARD.holes) buildBoard();
@@ -729,21 +836,28 @@ function startGame(mode) {
     showHandoff(G.state.turn);
   } else {
     show('game');
+    sound.deal();
     render({ dealAll: true });
     scheduleNext(null);
   }
 }
 
-function showHandoff(player) {
+function showHandoff(player, animateReveal = true) {
   passSeat = null;
   $('handoffTitle').textContent = 'Pass the phone to ' + playerName(player);
+  $('handoffBtn').dataset.animateReveal = animateReveal ? '1' : '0';
   show('handoff');
 }
 
 $('handoffBtn').addEventListener('click', () => {
   passSeat = G.state.turn;
   show('game');
-  render({ dealAll: true });
+  if (pendingDealSound) {
+    sound.deal();
+    pendingDealSound = false;
+  }
+  const animateReveal = $('handoffBtn').dataset.animateReveal === '1';
+  render(animateReveal ? { dealAll: true } : { instantPegs: true });
 });
 
 /* ---------------------------------------------------------------- game over */
@@ -759,7 +873,9 @@ const SKUNK_LINES = [
   'A SKUNK! Shut out below 91. Somewhere on Church Street, a bell tolls for them.',
 ];
 
-function showGameOver(status) {
+function showGameOver(status, { celebrate = true } = {}) {
+  if (outcomeShown) return;
+  outcomeShown = true;
   clearTimeout(botTimer);
   save(); // clears the save — game's done
   $('againBtn').classList.remove('hidden');
@@ -791,6 +907,30 @@ function showGameOver(status) {
   }
   $('go-score').textContent = `${status.scores[0]} — ${status.scores[1]}`;
   show('gameover');
+  screens.game.classList.remove('hidden');
+  $('board').classList.add('summit-result', `winner-p${winner}`);
+  $('board').classList.toggle('skunk-win', status.skunk);
+  if (celebrate) {
+    $('board').classList.add('summit-celebrate');
+    sound.summit(G.mode === 'bot' ? winner !== BOT : (G.mode === 'online' ? winner === online.myPlayer : true));
+    scatterLeaves();
+  }
+  $('againBtn').focus({ preventScroll: true });
+}
+
+function scatterLeaves() {
+  if (reducedMotion.matches) return;
+  const colors = ['maple', 'gold', 'green'];
+  for (let i = 0; i < 24; i++) {
+    const leaf = document.createElement('i');
+    leaf.className = `leaf ${colors[i % colors.length]}`;
+    leaf.style.left = `${(i * 37) % 101}%`;
+    leaf.style.setProperty('--drift', `${((i * 29) % 90) - 45}px`);
+    leaf.style.animationDelay = `${(i % 8) * 70}ms`;
+    leaf.style.animationDuration = `${1500 + (i % 6) * 130}ms`;
+    leaf.addEventListener('animationend', () => leaf.remove(), { once: true });
+    $('leaves').appendChild(leaf);
+  }
 }
 
 /* ---------------------------------------------------------------- menu */
@@ -805,12 +945,15 @@ $('resumeBtn').addEventListener('click', () => {
   selected = [];
   passSeat = null;
   busy = false;
+  pendingDealSound = false;
+  outcomeShown = false;
+  resetEffects();
   if (!BOARD.holes) buildBoard();
   if (G.mode === 'pass' && ['discard', 'cut', 'play'].includes(G.state.phase)) {
-    showHandoff(G.state.turn);
+    showHandoff(G.state.turn, false);
   } else {
     show('game');
-    render({ dealAll: true });
+    render({ instantPegs: true });
     scheduleNext(null);
   }
 });
@@ -818,6 +961,10 @@ $('resumeBtn').addEventListener('click', () => {
 function finishMenu() {
   clearTimeout(botTimer);
   clearTimeout(calloutTimer);
+  sound.stop();
+  resetEffects();
+  eventQueue = [];
+  afterQueue = null;
   busy = false;
   $('showPanel').classList.add('hidden');
   $('callout').classList.add('hidden');
@@ -951,7 +1098,7 @@ async function onlineGo() {
       }
       const match = await OnlineMatch.join({ game: GAME, code, name });
       closeOnlinePanel();
-      enterOnlineGame(match);
+      enterOnlineGame(match, true);
     }
   } catch (err) {
     opError.textContent = friendlyRoomError(err);
@@ -969,7 +1116,7 @@ function openLobby(match) {
     onStatus: (status) => {
       if (status === 'playing') {
         lobbyEl.classList.add('hidden');
-        enterOnlineGame(match);
+        enterOnlineGame(match, true);
       }
     },
     onError: () => {}, // the next poll normally settles a waiting-room hiccup
@@ -1009,12 +1156,16 @@ function refreshRejoin() {
   if (saved) rejoinBtn.textContent = `↩ REJOIN TABLE ${saved.code}`;
 }
 
-function enterOnlineGame(match) {
+function enterOnlineGame(match, fresh = false) {
   clearTimeout(botTimer);
   clearTimeout(calloutTimer);
   selected = [];
   passSeat = null;
   busy = false;
+  pendingDealSound = false;
+  outcomeShown = false;
+  sound.stop();
+  resetEffects();
   pollErrors = 0;
   const hostPlayer = initialHostPlayer(match.state);
   const myPlayer = match.seat === 0 ? hostPlayer : 1 - hostPlayer;
@@ -1022,14 +1173,15 @@ function enterOnlineGame(match) {
   G = { mode: 'online', state: match.state };
   if (!BOARD.holes) buildBoard();
   show('game');
-  render({ dealAll: true });
+  if (fresh) sound.deal();
+  render(fresh ? { dealAll: true } : { instantPegs: true });
   match.start({
     onState: onRemoteState,
     onStatus: onRemoteStatus,
     onPresence: onRemotePresence,
     onError: onPollError,
   });
-  if (match.status === 'over') onRemoteStatus('over');
+  if (match.status === 'over') showGameOver(getStatus(G.state), { celebrate: false });
 }
 
 function stopPresentation() {
@@ -1037,16 +1189,31 @@ function stopPresentation() {
   eventQueue = [];
   afterQueue = null;
   busy = false;
+  sound.stop();
+  resetEffects();
   $('showPanel').classList.add('hidden');
   $('callout').classList.add('hidden');
 }
 
 function onRemoteState(newState) {
   if (!online || !G) return;
+  const wasOver = getStatus(G.state).status === 'over';
   stopPresentation();
   selected = [];
   G.state = newState;
-  render();
+  const action = newState.lastAction?.type;
+  const rematchDeal = wasOver && getStatus(newState).status === 'active' && !action;
+  if (rematchDeal) {
+    outcomeShown = false;
+    show('game');
+  }
+  if (action === 'play') sound.slap();
+  if (action === 'deal' || rematchDeal) sound.deal();
+  render({
+    slap: action === 'play',
+    flipStarter: action === 'cut',
+    dealAll: action === 'deal' || rematchDeal,
+  });
   processEvents(newState.lastEvents || [], () => {
     render();
     const status = getStatus(G.state);
@@ -1151,8 +1318,10 @@ async function onlineRematch() {
   const fresh = freshOnlineState(online.hostPlayer);
   stopPresentation();
   selected = [];
+  outcomeShown = false;
   G.state = fresh;
   show('game');
+  sound.deal();
   render({ dealAll: true });
   try {
     await match.push(fresh, {});
