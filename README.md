@@ -39,6 +39,7 @@ Plain static site — no build step. `index.html` + `style.css` + ES modules in 
 | `js/engine.js` | **all** the game rules, as pure functions over one JSON-serializable state object (seeded RNG lives in the state — same seed, same deal); pegging-play scoring included |
 | `js/scoring.js` | the show counter — scores any 4 cards + starter (crib flag included) and returns the full itemized breakdown, one line per fifteen/pair/run/flush/nobs |
 | `js/bot.js` | Champ's brain — only calls the engine's public API; tries all 15 discards against every possible starter (keeping value vs. feeding the crib), pegs for points, leads low-safe |
+| `js/leaderboard.js` | monthly leaderboard client (Supabase); vs-Champ wins only, no accounts |
 | `js/main.js` | UI only: screens, taps, the Long Trail board (SVG, drawn in code), scoring callouts, the show panel, bot pacing, pass-and-play handoffs, localStorage resume |
 
 The engine/UI split is deliberate: online multiplayer later just means
